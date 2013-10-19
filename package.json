@@ -1,0 +1,26 @@
+{
+  "name": "focusatwill-scrobbler",
+  "version": "0.1.0",
+  "dependencies": {},
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "description": "Last.fm scrobbler for focus@will",
+  "keywords": [
+    "focusatwill",
+    "scrobbler"
+  ],
+  "author": "Tom Vincent",
+  "license": "MIT",
+  "devDependencies": {
+    "coffee-script": "~1.6.3"
+  },
+  "main": "makefile",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tlvince/focusatwill-scrobbler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tlvince/focusatwill-scrobbler/issues"
+  }
+}
