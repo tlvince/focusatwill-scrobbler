@@ -106,4 +106,20 @@ main = ->
     characterData: true
     subtree: true
 
-getSession()
+nowPlaying = ->
+  query =
+    method: 'track.updateNowPlaying'
+    artist: 'Nirvana'
+    track: 'School'
+    api_key: key
+    token: localStorage.token
+    sk: localStorage.session
+
+  query.api_sig = sign(query)
+  query.format = 'json'
+
+  request = new XMLHttpRequest()
+  request.open 'POST', api + buildQuery(query)
+  request.send()
+
+nowPlaying()
