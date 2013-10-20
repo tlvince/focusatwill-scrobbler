@@ -1,6 +1,10 @@
 'use strict'
 
 api = '//ws.audioscrobbler.com/2.0/?'
+lfm = 'http://www.last.fm/api/auth/?'
+
+key = 'f85dd881f328badc6505a31ae9cc8626'
+secret = 'a0c50bb8ceda91e115c44b725680d904'
 
 buildQuery = (query) ->
   str = []
@@ -25,24 +29,81 @@ getTrack = ->
   query = buildQuery(lfm)
   request = api + query
 
-  httpRequest = new XMLHttpRequest()
+  request = new XMLHttpRequest()
 
-  httpRequest.onreadystatechange = ->
-    if httpRequest.readyState is 4
-      if httpRequest.status is 200
-        response = JSON.parse(httpRequest.responseText)
-        console.log response.track
+  request.onreadystatechange = ->
+    if request.readyState is 4 and request.status is 200
+      response = JSON.parse(request.responseText)
+      console.log response.track
 
-  httpRequest.open 'GET', request
-  httpRequest.send()
+  request.open 'GET', request
+  request.send()
 
-track = document.querySelector('.track')
+authorise = ->
+  query =
+    method: 'auth.gettoken'
+    api_key: key
+    format: 'json'
 
-observer = new window.WebKitMutationObserver (mutations) ->
-  mutations.forEach (mutation) ->
-    getTrack() if mutation.target.innerText isnt ''
+  request = new XMLHttpRequest()
+  request.onreadystatechange = ->
+    if request.readyState is 4 and request.status is 200
+      response = JSON.parse(request.responseText)
+      token = localStorage.token = response.token
 
-observer.observe track,
-  childList: true
-  characterData: true
-  subtree: true
+      query =
+        api_key: key
+        token: token
+      window.open lfm + buildQuery(query)
+
+    else
+      localStorage.token = ''
+
+  request.open 'GET', api + buildQuery(query)
+  request.send()
+
+getSession = ->
+  authorise() if not localStorage.token or localStorage.token is ''
+  if localStorage.session and localStorage.session isnt ''
+    return localStorage.session
+
+  query =
+    method: 'auth.getsession'
+    api_key: key
+    token: localStorage.token
+
+  sig = sign(query)
+
+  query.api_sig = sig
+  query.format = 'json'
+
+  request = new XMLHttpRequest()
+  request.onreadystatechange = ->
+    if request.readyState is 4 and request.status is 200
+      response = JSON.parse(request.responseText)
+      localStorage.session = response.session.key if response.session
+  request.open 'GET', api + buildQuery(query)
+  request.send()
+
+sign = (query) ->
+  keys = Object.keys(query).sort()
+
+  for key, i in keys
+    keys[i] = key + query[key]
+
+  signed = keys.join('') + secret
+  SparkMD5.hash(signed)
+
+main = ->
+  track = document.querySelector('.track')
+
+  observer = new window.WebKitMutationObserver (mutations) ->
+    mutations.forEach (mutation) ->
+      getTrack() if mutation.target.innerText isnt ''
+
+  observer.observe track,
+    childList: true
+    characterData: true
+    subtree: true
+
+getSession()
